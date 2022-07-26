@@ -11,7 +11,6 @@ server.extend(page);
 server.append(
     'Show',
     function (req, res, next) {
-        // Render the form, make sure it is editable - add button that will redirect to an edit route.
         var actionUrl = dw.web.URLUtils.url('Account-SaveDefaults');
         var defaultsForm = server.forms.getForm('sizedefaults');
         defaultsForm.clear()
