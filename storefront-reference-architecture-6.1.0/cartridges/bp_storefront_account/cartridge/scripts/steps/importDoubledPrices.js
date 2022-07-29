@@ -1,20 +1,16 @@
 'use strict';
 
-const xmlns = 'http://www.w3.org/2001/XMLSchema-instance';
-const loc = 'http://api.trade-server.net/schema/all_in_one/tb-cat_1_2_import.xsd';
-const xsi = 'xsi:noNamespaceSchemaLocation';
-
 const File = require('dw/io/File');
-const FileReader = require('dw/io/FileReader');;
+const FileReader = require('dw/io/FileReader');
 const XMLStreamReader = require('dw/io/XMLStreamReader');
 const Logger = require('dw/system/Logger');
 const XMLStreamConstants = require('dw/io/XMLStreamConstants');
-
+const XMLStreamWriter = require('dw/io/XMLStreamWriter');
+const FileWriter = require('dw/io/FileWriter');
 
 /**
  * Get the pricebook XML from Impex, double prices on products in the pricebook
  * @param {string} pricebookXML - Pricebook file
- * @returns {string} - pricebookID - Processed pricebook ID
  */
 
 function doublePrices(parameters) {
@@ -23,13 +19,6 @@ function doublePrices(parameters) {
         var xmlFile = new File(File.IMPEX + '/src/Pricebooks/' + pricebookXML);
         var xmlFileReader = new FileReader(xmlFile);
 
-        var x = xmlFileReader.read();
-
-        if (x === '<') {
-            xmlFileReader.close();
-            xmlFileReader = new FileReader(xmlFile);
-        }
-
         var xmlReader = new XMLStreamReader(xmlFileReader);
 
         while (xmlReader.hasNext()) {
@@ -37,12 +26,13 @@ function doublePrices(parameters) {
                 var localElementName = xmlReader.getLocalName();
 
                 if (localElementName === 'priceTable') {
-                    var myObject = xmlReader.getXMLObject();
-                    var myValue = myObject.amount.toString();
+                    var myObject = xmlReader.readXMLObject();
+                    myObject.amount *= 2;
+                    return myObject;
                 }
             }
         }
-        return null;
+
     } catch (e) {
         Logger.error('importDoublePrices.js has failed reading the pricebook XML with the following error: ' + e.message);
     };
