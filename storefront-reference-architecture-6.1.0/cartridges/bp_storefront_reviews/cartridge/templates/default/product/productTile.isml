@@ -19,7 +19,7 @@
             <isinclude template="product/productTileFooter" />
         </isif>
         <isif condition="${pdict.loggedIn === true}">
-            <a href="${pdict.reviewUrl}">Leave review</a>
+            <a href="${pdict.reviewUrl}?id=${product.id}">Leave review</a>
         </isif>    
     </div>
     <!-- END_dwmarker -->
