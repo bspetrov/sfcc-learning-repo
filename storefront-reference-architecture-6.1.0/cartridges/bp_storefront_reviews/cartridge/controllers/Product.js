@@ -7,6 +7,7 @@ server.extend(page);
 var CustomObjectMgr = require('dw/object/CustomObjectMgr');
 var URLUtils = require('dw/web/URLUtils');
 var OrderMgr = require('dw/order/OrderMgr');
+var Transaction = require('dw/system/Transaction');
 
 
 /**
@@ -59,19 +60,28 @@ server.get(
                     });
                 } else {
                     res.json({
-                        "You havent purchased this product!"
-                    })
+                        "ERROR": 'You can review a product once you have purchased it!'
+                    });
                 }
             } catch (e) {
-                //
+                res.json({
+                    "ERROR": e
+                })
             }
 
+        } else {
+            res.redirect("Login-Show");
         }
         next();
 
     }
 );
 
+/**
+ * Product-GiveReviewHandler : This endpoint processes the form and submits the data to a Reviews CO instance.
+ * @name Product-GiveReviewHandler
+ * @function
+ */
 
 server.post(
     "GiveReviewHandler",
@@ -79,18 +89,28 @@ server.post(
     function (req, res, next) {
         var reviewForm = server.forms.getForm('review');
         var continueUrl = dw.web.URLUtils.utl('Home-Show');
-        
-        // TODO -> Process form and create the custom object
+        var productID = req.querystring.id;
+        var reviewCustomer = req.currentCustomer.profile.id;
+        var reviewDescription = reviewForm.reviewDescription.value;
+        var reviewGrade = reviewForm.reviewGrade.value;
+        var reviewTitle = reviewForm.reviewTitle.value;
 
         if (reviewForm.valid) {
             try {
-                var reviewCustomObject = CustomObjectMgr.createCustomObject('ProductReview', )
+                Transaction.wrap(function(){
+                    var reviewCustomObject = CustomObjectMgr.createCustomObject('ProductReview', productID);
+                    reviewCustomObject.reviewCustomer = reviewCustomer;
+                    reviewCustomObject.reviewDescription - reviewDescription;
+                    reviewCustomObject.reviewGrade = reviewGrade;
+                    reviewCustomObject.reviewTitle = reviewTitle;
+    
+                });
             } catch (e) {
                 var err = e;
                 res.setStatusCode(500);
                 res.json({
                     error: true,
-                    redirectUrl: URLUtils.url('Error-Start').toString()
+                    redirectUrl: URLUtils.url("Error-Start").toString()
                 });
             }
         }
