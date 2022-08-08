@@ -8,10 +8,12 @@ var CustomObjectMgr = require('dw/object/CustomObjectMgr');
 var URLUtils = require('dw/web/URLUtils');
 var OrderMgr = require('dw/order/OrderMgr');
 var Transaction = require('dw/system/Transaction');
-
+var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
+var CustomObjectMgr = require('dw/object/CustomObjectMgr');
+var getOrderedProducts = require('*/cartridge/scripts/helpers/orderedProducts')
 
 /**
- * Product-GiveReview : This endpoint is when the shopped selects "Give review" on a product he has ordered already.
+ * Product-GiveReview : This endpoint is when the shopper selects "Give review" on a product he has ordered already.
  * @name Product-GiveReview
  * @function
  */
@@ -19,50 +21,42 @@ var Transaction = require('dw/system/Transaction');
 server.get(
     "GiveReview",
     server.middleware.https,
+    csrfProtection.generateToken,
     function (req, res, next) {
+        var requestID = req.querystring.id;
+        var productPDPUrl = URLUtils.url("Product-Show", 'pid', requestID);
+
         if (req.currentCustomer.profile) {
             try {
                 var customerNo = req.currentCustomer.profile.customerNo;
-                var customerOrdersQuery = OrderMgr.queryOrders('customerNo = {0}', null, customerNo);
-                var customerProducts = [];
-                var totalOrders = customerOrdersQuery.hasNext();
-                if (totalOrders) {
-                    while (customerOrdersQuery.hasNext()) {
-                        var order = customerOrdersQuery.next();
-                        var orderItems = order.productLineItems;
-                        for (var item in orderItems) {
-                            var product = orderItems[item].product;
-                            var productID = null;
-                            if (product.variant == true) {
-                                productID = product.masterProduct.ID;
-                                customerProducts.push(productID);
-                            } else {
-                                productID = product.ID;
-                                customerProducts.push(productID);   
-                            }
-                        }
-                    }
+                var coKey = customerNo + "-" + requestID;
+                var checkForReviewQuery = CustomObjectMgr.getCustomObject("ProductReview", coKey)
+                var continueUrl = URLUtils.url('Home-Show');
 
+                if (!checkForReviewQuery) {
+                    var customerProducts = getOrderedProducts.getOrderedProducts(customerNo);
+                    
+                    if (customerProducts.includes(requestID)) {
+                        var actionUrl = dw.web.URLUtils.url('Product-GiveReviewHandler');
+                        var reviewForm = server.forms.getForm('review');
+                        reviewForm.clear();
+
+                        res.render('review/writeReview', {
+                            actionUrl: actionUrl,
+                            reviewForm: reviewForm,
+                            productID: requestID
+                        });
+                    } else {
+                        res.render('account/missingProduct', {
+                            productPDPUrl: productPDPUrl
+                        });
+                    }
                 } else {
-                    res.json({
-                        "ERROR": 'You have no orders!'
-                    });
+                    res.render('account/reviewExisting', {
+                        continueUrl: continueUrl
+                    });   
                 }
-                var requestID = req.querystring.id;
-                if (customerProducts.includes(requestID)) {
-                    var actionUrl = dw.web.URLUtils.url('Product-GiveReviewHandler');
-                    var reviewForm = server.forms.getForm('review');
-                    reviewForm.clear();
-            
-                    res.render('review/writeReview', {
-                        actionUrl: actionUrl,
-                        reviewForm: reviewForm
-                    });
-                } else {
-                    res.json({
-                        "ERROR": 'You can review a product once you have purchased it!'
-                    });
-                }
+
             } catch (e) {
                 res.json({
                     "ERROR": e
@@ -86,33 +80,51 @@ server.get(
 server.post(
     "GiveReviewHandler",
     server.middleware.https,
+    csrfProtection.validateAjaxRequest,
     function (req, res, next) {
         var reviewForm = server.forms.getForm('review');
-        var continueUrl = dw.web.URLUtils.utl('Home-Show');
-        var productID = req.querystring.id;
-        var reviewCustomer = req.currentCustomer.profile.id;
-        var reviewDescription = reviewForm.reviewDescription.value;
-        var reviewGrade = reviewForm.reviewGrade.value;
-        var reviewTitle = reviewForm.reviewTitle.value;
+        var continueUrl = URLUtils.url('Home-Show');
+        var productID = req.querystring.id
+        var reviewCustomer = req.currentCustomer.profile;
+        var coKey = reviewCustomer.customerNo + "-" + productID;
 
         if (reviewForm.valid) {
+            var reviewDescription = reviewForm.description.value;
+            var reviewGrade = reviewForm.grade.value;
+            var reviewTitle = reviewForm.title.value;
+
             try {
-                Transaction.wrap(function(){
-                    var reviewCustomObject = CustomObjectMgr.createCustomObject('ProductReview', productID);
-                    reviewCustomObject.reviewCustomer = reviewCustomer;
-                    reviewCustomObject.reviewDescription - reviewDescription;
-                    reviewCustomObject.reviewGrade = reviewGrade;
-                    reviewCustomObject.reviewTitle = reviewTitle;
-    
+                Transaction.wrap(function () {
+                    var reviewCustomObject = CustomObjectMgr.createCustomObject('ProductReview', coKey);
+                    reviewCustomObject.custom.reviewCustomer = reviewCustomer.customerNo;
+                    reviewCustomObject.custom.reviewProductID = productID;
+                    reviewCustomObject.custom.reviewDescription = reviewDescription;
+                    reviewCustomObject.custom.reviewGrade = reviewGrade;
+                    reviewCustomObject.custom.reviewTitle = reviewTitle;
+                    res.render('account/reviewSubmitted', {
+                        continueUrl: continueUrl
+                    });
+
                 });
             } catch (e) {
                 var err = e;
-                res.setStatusCode(500);
-                res.json({
-                    error: true,
-                    redirectUrl: URLUtils.url("Error-Start").toString()
-                });
+                if (err.causeName == 'ORMSQLException') {
+                    res.render('account/reviewExisting', {
+                        continueUrl: continueUrl
+                    });
+                } else {
+                    res.setStatusCode(500);
+                    res.json({
+                        error: true,
+                        redirectUrl: URLUtils.url("Error-Start").toString(),
+                        message: e
+                    });
+                }
             }
+        } else {
+            res.json({
+                "error": "Make sure the grade is a number from 1 to 5!"
+            });
         }
         next();
     }
