@@ -5,7 +5,7 @@ var OrderMgr = require('dw/order/OrderMgr');
 /**
  * Goes through order history of the customer and returns an array of ordered products.
  * @param {string} customerNo - customer number
- * @returns {Array} array containing customer orders
+ * @returns {Array} array containing customer products
  */
 
 function getOrderedProducts(customerNo) {

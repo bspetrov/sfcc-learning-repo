@@ -11,6 +11,7 @@ var Transaction = require('dw/system/Transaction');
 var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 var CustomObjectMgr = require('dw/object/CustomObjectMgr');
 var getOrderedProducts = require('*/cartridge/scripts/helpers/orderedProducts')
+var ProductMgr = require('dw/catalog/ProductMgr');
 
 /**
  * Product-GiveReview : This endpoint is when the shopper selects "Give review" on a product he has ordered already.
@@ -87,6 +88,13 @@ server.post(
         var productID = req.querystring.id
         var reviewCustomer = req.currentCustomer.profile;
         var coKey = reviewCustomer.customerNo + "-" + productID;
+        var currentProduct = ProductMgr.getProduct(productID);
+        var test = currentProduct.custom.submittedReviews;
+        var testArray = []
+        for (var i in test) {
+            testArray.push(test[i]);
+        }
+        testArray.push(3);
 
         if (reviewForm.valid) {
             var reviewDescription = reviewForm.description.value;
@@ -101,6 +109,7 @@ server.post(
                     reviewCustomObject.custom.reviewDescription = reviewDescription;
                     reviewCustomObject.custom.reviewGrade = reviewGrade;
                     reviewCustomObject.custom.reviewTitle = reviewTitle;
+                    currentProduct.custom.submittedReviews = testArray;
                     res.render('account/reviewSubmitted', {
                         continueUrl: continueUrl
                     });
