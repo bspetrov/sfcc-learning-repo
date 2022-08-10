@@ -12,6 +12,8 @@ var csrfProtection = require('*/cartridge/scripts/middleware/csrf');
 var CustomObjectMgr = require('dw/object/CustomObjectMgr');
 var getOrderedProducts = require('*/cartridge/scripts/helpers/orderedProducts')
 var ProductMgr = require('dw/catalog/ProductMgr');
+var pdpReviews = require('*/cartridge/scripts/helpers/pdpReviews');
+
 
 /**
  * Product-GiveReview : This endpoint is when the shopper selects "Give review" on a product he has ordered already.
@@ -89,12 +91,7 @@ server.post(
         var reviewCustomer = req.currentCustomer.profile;
         var coKey = reviewCustomer.customerNo + "-" + productID;
         var currentProduct = ProductMgr.getProduct(productID);
-        var test = currentProduct.custom.submittedReviews;
-        var testArray = []
-        for (var i in test) {
-            testArray.push(test[i]);
-        }
-        testArray.push(3);
+        var testArray = [];
 
         if (reviewForm.valid) {
             var reviewDescription = reviewForm.description.value;
@@ -109,7 +106,6 @@ server.post(
                     reviewCustomObject.custom.reviewDescription = reviewDescription;
                     reviewCustomObject.custom.reviewGrade = reviewGrade;
                     reviewCustomObject.custom.reviewTitle = reviewTitle;
-                    currentProduct.custom.submittedReviews = testArray;
                     res.render('account/reviewSubmitted', {
                         continueUrl: continueUrl
                     });
@@ -138,5 +134,31 @@ server.post(
         next();
     }
 );
+
+/**
+ * This endpoint extends the base PDP endpoint in order to add reviews
+ * @name Product-Show 
+ */
+
+server.append(
+    "Show",
+    server.middleware.https,
+    function(req, res, next) {
+
+        var viewData = res.getViewData();
+        var fullProduct = ProductMgr.getProduct(viewData.product.id);
+        var avgProductGrade = fullProduct.custom.submittedReviews;
+        var allReviews = pdpReviews.getThreeReviews(viewData.product.id);
+        viewData.avgProductGrade = avgProductGrade;
+        viewData.allReviews = allReviews;
+
+        
+        res.setViewData(viewData);
+
+
+
+        next();
+    }
+)
 
 module.exports = server.exports();

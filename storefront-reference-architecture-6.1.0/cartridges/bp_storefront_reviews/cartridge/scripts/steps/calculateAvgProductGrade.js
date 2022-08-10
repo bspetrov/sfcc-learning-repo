@@ -22,7 +22,7 @@ function calculateAvgProductGrade(){
         }
         var average = calc.getAvgGrade(productID);
         Transaction.begin();
-        product.custom.submittedReviews = str(average);
+        product.custom.submittedReviews = String(average);
         Transaction.commit();
     }
 };

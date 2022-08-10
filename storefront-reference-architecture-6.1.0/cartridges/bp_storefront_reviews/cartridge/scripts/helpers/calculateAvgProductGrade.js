@@ -22,12 +22,13 @@ function getAvgGrade(productID) {
             gradesHolder.push(productReviewGrade);
         }
 
-        for (var i in gradesHolder) {
+        for (var i = 0; i < gradesHolder.length; i++) {
             avgGrade += gradesHolder[i];
-            return str(avgGrade);
         }
+        return Math.ceil(avgGrade / gradesHolder.length);
+
     } else {
-        
+
         avgGrade = "No reviews given";
         return avgGrade;
     }

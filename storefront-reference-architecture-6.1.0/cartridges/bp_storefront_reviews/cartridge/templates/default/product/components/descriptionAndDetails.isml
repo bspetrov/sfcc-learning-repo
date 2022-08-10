@@ -1,4 +1,9 @@
 <div class="description-and-detail">
+
+    <div class="review-content" style="padding:30px;border:3px solid #f1f1f1">
+      <span class="heading">User Rating</span>
+    </div>
+
     <div class="row product-attributes collapsible-xs">
         <isinclude template="product/components/attributes" />
     </div>
