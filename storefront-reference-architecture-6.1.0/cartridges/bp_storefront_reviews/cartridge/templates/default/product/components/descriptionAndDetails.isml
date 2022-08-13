@@ -39,7 +39,8 @@
 
         <isinclude template="product/components/details" />
     </div>
-        <isloop iterator="${pdict.allReviews}" alias="review">
+    <isif condition="${pdict.allReviews}">
+    <isloop iterator="${pdict.allReviews}" alias="review">
     <div class="review-content" style="padding:30px;border:3px solid #f1f1f1">
       <span class="heading" style="font-size:25px;mergin-right:25px">Anonymous reviewer</span>
       <isloop items="${[1, 2, 3, 4, 5]}" var="star">
@@ -59,4 +60,5 @@
       <p>${review.reviewDescription}</p>
     </div>
     </isloop>
+    </isif>
 </div>

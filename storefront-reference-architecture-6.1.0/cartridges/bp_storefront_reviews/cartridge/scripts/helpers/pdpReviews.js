@@ -19,7 +19,9 @@ function getThreeReviews(productID) {
         while (productReviewsQuery.hasNext() && counter < 3) {
             var productReview = productReviewsQuery.next();
             var reviewID = productReview.custom.customerIDproductID;
-            totalReviews.push(productReview.custom);
+            if (productReview.custom.enabled == true) {
+                totalReviews.push(productReview.custom);
+            }
         }
 
     } else {

@@ -137,22 +137,43 @@ server.post(
 
 /**
  * This endpoint extends the base PDP endpoint in order to add reviews
- * @name Product-Show 
+ * @name Product-Show
+ * @function
  */
 
 server.append(
     "Show",
     server.middleware.https,
     function(req, res, next) {
-
         var viewData = res.getViewData();
+        viewData.loggedIn = false;
+        viewData.reviewGiven = false;
+        viewData.productOrdered = false;
+        viewData.reviewUrl = URLUtils.url("Product-GiveReview");
+        if (req.currentCustomer.profile) {
+            viewData.loggedIn = true;
+        }
+        var requestID = req.querystring.pid;
+        var customerNo = req.currentCustomer.profile.customerNo;
+        var coKey = customerNo + "-" + requestID;
+        var checkForReviewQuery = CustomObjectMgr.getCustomObject("ProductReview", coKey)
+
+        if (checkForReviewQuery) {
+            viewData.reviewGiven = true;
+        }
+
+        var customerProducts = getOrderedProducts.getOrderedProducts(customerNo);
+        if (customerProducts.includes(req.querystring.pid)) {
+            viewData.productOrdered = true;
+        }
+
         var fullProduct = ProductMgr.getProduct(viewData.product.id);
         var avgProductGrade = fullProduct.custom.submittedReviews;
         var allReviews = pdpReviews.getThreeReviews(viewData.product.id);
         viewData.avgProductGrade = avgProductGrade;
         viewData.allReviews = allReviews;
 
-        
+
         res.setViewData(viewData);
 
 
