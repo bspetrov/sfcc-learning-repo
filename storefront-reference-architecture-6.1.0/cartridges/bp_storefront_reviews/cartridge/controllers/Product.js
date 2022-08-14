@@ -106,6 +106,7 @@ server.post(
                     reviewCustomObject.custom.reviewDescription = reviewDescription;
                     reviewCustomObject.custom.reviewGrade = reviewGrade;
                     reviewCustomObject.custom.reviewTitle = reviewTitle;
+                    reviewCustomObject.custom.enabled = true;
                     res.render('account/reviewSubmitted', {
                         continueUrl: continueUrl
                     });

@@ -14,6 +14,7 @@ var CustomObjectMgr = require('dw/object/CustomObjectMgr');
  * @function
  */
 
+
 server.get(
     "Reviews",
     function (req, res, next) {
@@ -35,11 +36,13 @@ server.get(
     }
 );
 
+
 /**
  * Process review enable/disable.
  * @name ReviewsAdmin-StatusHandler
  * @function
  */
+
 
 server.get(
     "StatusHandler",
@@ -64,5 +67,6 @@ server.get(
     }
 
 );
+
 
 module.exports = server.exports();

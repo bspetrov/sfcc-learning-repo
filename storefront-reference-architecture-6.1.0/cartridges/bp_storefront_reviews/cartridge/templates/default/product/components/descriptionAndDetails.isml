@@ -41,6 +41,7 @@
     </div>
     <isif condition="${pdict.allReviews}">
     <isloop iterator="${pdict.allReviews}" alias="review">
+    <isif condition="${review.enabled == true}">
     <div class="review-content" style="padding:30px;border:3px solid #f1f1f1">
       <span class="heading" style="font-size:25px;mergin-right:25px">Anonymous reviewer</span>
       <isloop items="${[1, 2, 3, 4, 5]}" var="star">
@@ -59,6 +60,7 @@
       <hr style="border:3px solid #f1f1f1">
       <p>${review.reviewDescription}</p>
     </div>
+    <isif condition="${review.enabled == true}">
     </isloop>
     </isif>
 </div>
