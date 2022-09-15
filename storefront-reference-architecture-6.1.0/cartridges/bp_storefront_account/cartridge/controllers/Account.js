@@ -1,7 +1,9 @@
 'use strict';
 
 var server = require('server');
+
 var page = module.superModule;
+
 server.extend(page);
 
 /**
@@ -13,12 +15,13 @@ server.append(
     function (req, res, next) {
         var actionUrl = dw.web.URLUtils.url('Account-SaveDefaults');
         var defaultsForm = server.forms.getForm('sizedefaults');
-        defaultsForm.clear()
+        defaultsForm.clear();
 
         let [currentShoes, currentClothes] = [customer.profile.custom.defaultSizeShoes, customer.profile.custom.defaultSizeClothes]
         if (!currentShoes && !currentClothes){
             [currentShoes, currentClothes] = ['There is no default!', 'There is no default!'];
         }
+
 
         res.render('account/accountDash', {
             actionUrl: actionUrl,
@@ -28,7 +31,6 @@ server.append(
             
 
         });
-
         next();
     }
 

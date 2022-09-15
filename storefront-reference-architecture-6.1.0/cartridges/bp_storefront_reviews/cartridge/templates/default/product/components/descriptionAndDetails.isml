@@ -60,7 +60,7 @@
       <hr style="border:3px solid #f1f1f1">
       <p>${review.reviewDescription}</p>
     </div>
-    <isif condition="${review.enabled == true}">
+    </isif>
     </isloop>
     </isif>
 </div>

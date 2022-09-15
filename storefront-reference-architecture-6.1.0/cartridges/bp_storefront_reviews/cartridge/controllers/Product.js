@@ -153,9 +153,16 @@ server.append(
         viewData.reviewUrl = URLUtils.url("Product-GiveReview");
         if (req.currentCustomer.profile) {
             viewData.loggedIn = true;
+            var customerNo = req.currentCustomer.profile.customerNo;
+            var [currentShoes, currentClothes] = [customer.profile.custom.defaultSizeShoes, customer.profile.custom.defaultSizeClothes];
+        }
+        if (currentShoes && currentClothes) {
+            viewData.userDefaults = true;
+            viewData.defaultShoes = currentShoes;
+            viewData.defaultClothes = currentClothes;
+
         }
         var requestID = req.querystring.pid;
-        var customerNo = req.currentCustomer.profile.customerNo;
         var coKey = customerNo + "-" + requestID;
         var checkForReviewQuery = CustomObjectMgr.getCustomObject("ProductReview", coKey)
 
@@ -173,6 +180,7 @@ server.append(
         var allReviews = pdpReviews.getThreeReviews(viewData.product.id);
         viewData.avgProductGrade = avgProductGrade;
         viewData.allReviews = allReviews;
+        viewData.requestID = requestID;
 
 
         res.setViewData(viewData);
